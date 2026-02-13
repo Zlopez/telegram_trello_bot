@@ -1,0 +1,13 @@
+# Telegram bot API token, you will get it when creating new bot
+# with @BotFather on Telegram
+bot_api_token = "Put your bot token here"
+# Telegram chat id to post messages to
+# The bot must be already in the channel
+telegram_chat_id = 111000
+
+# Trello related configuration
+# Credentials to use for login
+# You can get those by following
+# https://developer.atlassian.com/cloud/trello/guides/rest-api/api-introduction/#authentication-and-authorization
+trello_api_key = ""
+trello_api_secret = ""
