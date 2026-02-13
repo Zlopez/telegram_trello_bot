@@ -1,4 +1,4 @@
-# telegram_upload_bot
+# telegram_trello_bot
 Simple telegram bot to notify about upcoming trello events
 
 This bot is looking at cards on Trello server and sends notification
