@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
 # For debugging
-#log.level = logging.DEBUG
+#log.setLevel(logging.DEBUG)
 
 
 def parse_arguments(args: list) -> argparse.Namespace:
@@ -85,6 +85,7 @@ async def send_message(bot: telegram.Bot, chat_id: int, message: str) -> None:
       chat_id: ID of the chat to send message to
       message: Message to send
     """
+    log.debug("Sending message to telegram: %s", message)
     await bot.send_message(
         chat_id,
         message,
@@ -117,27 +118,28 @@ if __name__ == "__main__":
         till = now.shift(days=+7)
 
     # Get the cards for the range
-    cards = dict(sorted(trello.get_upcoming_cards(till).items()))
+    cards = sorted(trello.get_upcoming_cards(till), key=lambda x:x[1])
+    log.debug(cards)
 
     # If nothing was retrieved, no need to send anything
-    log.info("Retrieved %d cards from trello", len(cards.items()))
+    log.info("Retrieved %d cards from trello", len(cards))
     if cards:
 
         upcoming_week = []
         upcoming_month = []
 
-        for key, card in cards.items():
+        for name, due_date, url in cards:
             text = "[{}]({}) \\- {}".format(
-                telegram.helpers.escape_markdown(card[0], version=2),
-                telegram.helpers.escape_markdown(card[1], version=2),
-                telegram.helpers.escape_markdown(key.to('local').format("DD-MM-YYYY HH:mm"), version=2)
+                telegram.helpers.escape_markdown(name, version=2),
+                telegram.helpers.escape_markdown(url, version=2),
+                telegram.helpers.escape_markdown(due_date.to('local').format("DD-MM-YYYY HH:mm"), version=2)
             )
             # Only fill upcoming Month if it's first day of month
             if now.date().day == 1:
                 upcoming_month.append(text)
             # Don't add any cards with due_date greater than till to
             # weekly upcoming cards
-            if key <= till:
+            if due_date <= till:
                 upcoming_week.append(text)
 
         # Prepare messages to sent to telegram

@@ -2,13 +2,15 @@
 Trello wrapper using py-trello library.
 """
 import logging
-from typing import Dict, Tuple
+from typing import Tuple, List
 
 import arrow
 from trello import TrelloClient
 
 log = logging.getLogger(__name__)
 
+# For debugging
+#log.setLevel(logging.DEBUG)
 
 class Trello:
     """
@@ -44,7 +46,7 @@ class Trello:
     def get_upcoming_cards(
             self,
             till: arrow.Arrow
-    ) -> Dict[arrow.Arrow, Tuple[str, str]]:
+    ) -> List[Tuple[str, arrow.Arrow, str]]:
         """
         Collect all cards from Trello that have due date since now till `till`.
 
@@ -52,20 +54,24 @@ class Trello:
           till: Due date for retrived cards
 
         Returns:
-          Dictionary containing Due Date, Name and link to card
+          List of tuples containing Due Date, Name and link to card
         """
         now = arrow.utcnow()
-        result = {}
+        result = []
         for board in self._trello.list_boards():
+            log.info("Processing board %s ...", board.name)
             for trello_list in board.list_lists():
+                log.info("Processing list %s ...", trello_list.name)
                 for card in trello_list.list_cards():
                     # Skip cards without due dates
                     if not card.due_date:
+                        log.debug("%s doesn't have due date set. Skipping.", card.name)
                         continue
                     due_date = arrow.get(card.due_date)
                     log.debug("%s has date %s", card.name, due_date)
+                    log.debug("%s < %s < %s", now, due_date, till)
                     if due_date < till and due_date > now:
                         # This is the card we want to be notified about
-                        result[due_date] = (card.name, card.url)
+                        result.append((card.name, due_date, card.url))
 
         return result
