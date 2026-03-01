@@ -139,7 +139,7 @@ if __name__ == "__main__":
                 upcoming_month.append(text)
             # Don't add any cards with due_date greater than till to
             # weekly upcoming cards
-            if due_date <= till:
+            if due_date <= now.shift(days=+7):
                 upcoming_week.append(text)
 
         # Prepare messages to sent to telegram
