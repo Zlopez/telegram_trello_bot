@@ -76,21 +76,22 @@ def read_config(config: str) -> dict:
 
 # In newer versions of python-telegram-bot library
 # we need to have async function to send messages
-async def send_message(bot: telegram.Bot, chat_id: int, message: str) -> None:
+async def send_message(token: str, chat_id: int, message: str) -> None:
     """
     Sends messages to telegram.
 
     Params:
-      bot: Instance of the bot to use to send message
+      token: Telegram token for bot
       chat_id: ID of the chat to send message to
       message: Message to send
     """
     log.debug("Sending message to telegram: %s", message)
-    await bot.send_message(
-        chat_id,
-        message,
-        parse_mode=telegram.constants.ParseMode.MARKDOWN_V2,
-    )
+    async with telegram.Bot(token=token) as bot:
+        await bot.send_message(
+            chat_id,
+            message,
+            parse_mode=telegram.constants.ParseMode.MARKDOWN_V2,
+        )
 
 
 if __name__ == "__main__":
@@ -104,8 +105,6 @@ if __name__ == "__main__":
         config.get("trello_api_secret"),
         config.get("trello_token"),
     )
-    log.debug("Initializing telegram bot")
-    bot = telegram.Bot(token=config.get("bot_api_token"))
 
     # Is first day of the month?
     now = arrow.utcnow()
@@ -155,7 +154,7 @@ if __name__ == "__main__":
 
         if monthly_message:
             log.debug("Monthly message to send: %s", monthly_message)
-            asyncio.run(send_message(bot, config.get("telegram_chat_id"), monthly_message))
+            asyncio.run(send_message(config.get("bot_api_token"), config.get("telegram_chat_id"), monthly_message))
 
         log.debug("Weekly message to send: %s", weekly_message)
-        asyncio.run(send_message(bot, config.get("telegram_chat_id"), weekly_message))
+        asyncio.run(send_message(config.get("bot_api_token"), config.get("telegram_chat_id"), weekly_message))
