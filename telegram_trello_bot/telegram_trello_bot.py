@@ -126,6 +126,7 @@ if __name__ == "__main__":
 
         upcoming_week = []
         upcoming_month = []
+        deadline_missed = []
 
         for name, due_date, url in cards:
             text = "[{}]({}) \\- {}".format(
@@ -134,12 +135,20 @@ if __name__ == "__main__":
                 telegram.helpers.escape_markdown(due_date.to('local').format("DD-MM-YYYY HH:mm"), version=2)
             )
             # Only fill upcoming Month if it's first day of month
-            if now.date().day == 1:
+            if now.date().day == 1 and due_date >= now:
                 upcoming_month.append(text)
             # Don't add any cards with due_date greater than till to
             # weekly upcoming cards
-            if due_date <= now.shift(days=+7):
+            if due_date <= now.shift(days=+7) and due_date > now:
                 upcoming_week.append(text)
+            # missed due date
+            if due_date < now:
+                deadline_missed.append(text)
+
+        # Tasks that already missed due date
+        deadline_missed_message = "*Missed due date* :\n"
+        for entry in deadline_missed:
+            deadline_missed_message = deadline_missed_message + "\\- {}\n".format(entry)
 
         # Prepare messages to sent to telegram
         monthly_message = ""
@@ -151,6 +160,7 @@ if __name__ == "__main__":
         weekly_message = "In *next 7 days* :\n"
         for entry in upcoming_week:
             weekly_message = weekly_message + "\\- {}\n".format(entry)
+        weekly_message = weekly_message + "\n" + deadline_missed_message
 
         if monthly_message:
             log.debug("Monthly message to send: %s", monthly_message)

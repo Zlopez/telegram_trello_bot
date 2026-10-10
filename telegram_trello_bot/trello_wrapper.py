@@ -56,7 +56,6 @@ class Trello:
         Returns:
           List of tuples containing Due Date, Name and link to card
         """
-        now = arrow.utcnow()
         result = []
         for board in self._trello.list_boards():
             log.info("Processing board %s ...", board.name)
@@ -67,10 +66,13 @@ class Trello:
                     if not card.due_date:
                         log.debug("%s doesn't have due date set. Skipping.", card.name)
                         continue
+                    if card.is_due_complete:
+                        log.debug("%s is already done. Skipping.", card.name)
+                        continue
                     due_date = arrow.get(card.due_date)
                     log.debug("%s has date %s", card.name, due_date)
-                    log.debug("%s < %s < %s", now, due_date, till)
-                    if due_date < till and due_date > now:
+                    log.debug("%s < %s", due_date, till)
+                    if due_date < till:
                         # This is the card we want to be notified about
                         result.append((card.name, due_date, card.url))
 
